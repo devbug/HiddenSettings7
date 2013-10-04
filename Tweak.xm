@@ -9,23 +9,9 @@
 @interface SBPrototypeController : NSObject
 + (id)sharedInstance;
 + (void)reloadDefaults;
-- (void)_updatePreventingLockover;
-- (void)_configureForDefaults;
-- (void)_changeActiveTestRecipeIfNecessary;
-- (void)_tearDownSettingsWindow;
-- (struct CGRect)_offscreenFrame;
 - (void)_hideSettings;
 - (void)_showSettings;
-- (id)_testRecipeClassNames;
-- (void)settings:(id)fp8 changedValueForKey:(id)fp12;
-- (void)handleVolumeDecrease;
-- (void)handleVolumeIncrease;
-- (void)setActiveTestRecipe:(id)fp8;
 - (void)showOrHide;
-- (BOOL)isPrototypingEnabled;
-- (id)activeTestRecipe;
-- (BOOL)isShowingSettingsUI;
-- (id)rootSettings;
 @end
 
 
@@ -102,52 +88,16 @@
 @end
 
 @interface SBControlCenterContentContainerView : UIView
-- (void)setContentHeight:(float)fp8;
-- (float)contentHeight;
-- (void)setContentView:(id)fp8;
 - (SBControlCenterContentView *)contentView;
-- (void)setBackdropView:(id)fp8;
-- (id)backdropView;
-- (void)controlCenterDidFinishTransition;
-- (void)controlCenterWillBeginTransition;
-- (void)controlCenterDidDismiss;
-- (void)controlCenterWillPresent;
-- (void)layoutSubviews;
 @end
 
 @interface SBControlCenterContainerView : UIView
 - (SBControlCenterContentContainerView *)contentContainerView;
-- (void)controlCenterDidFinishTransition;
-- (void)controlCenterWillFinishTransitionOpen:(BOOL)fp8 withDuration:(double)fp12;
-- (void)controlCenterWillBeginTransition;
-- (void)controlCenterDidDismiss;
-- (void)controlCenterWillPresent;
-- (void)_updateContentFrame;
-- (void)_updateDarkeningFrame;
-- (void)layoutSubviews;
 @end
 
 @interface SBControlCenterViewController : NSObject /* <..., SBControlCenterSectionViewControllerDelegate, ...>*/ {
 	//SBControlCenterContainerView *_containerView;
-	//SBControlCenterContentView *_contentView;
-	//NSMutableArray *_sectionList;
-	//SBControlCenterSettings *_settings;
 }
-- (BOOL)isTransitioning;
-- (BOOL)isPresented;
-- (void)_updateContentFrame;
-- (void)viewDidAppear:(BOOL)fp8;
-- (void)viewDidLoad;
-- (void)loadView;
-- (void)section:(id)fp8 updateStatusText:(id)fp12 reason:(id)fp16;
-- (void)noteSectionEnabledStateDidChange:(id)fp8;
-- (void)sectionWantsControlCenterDismissal:(id)fp8;
-- (void)controlCenterDidFinishTransition;
-- (void)controlCenterWillFinishTransitionOpen:(BOOL)fp8 withDuration:(double)fp12;
-- (void)controlCenterWillBeginTransition;
-- (void)controlCenterDidDismiss;
-- (void)controlCenterWillPresent;
-- (float)contentHeightForOrientation:(int)fp8;
 @end
 
 @interface SBControlCenterController : NSObject {
@@ -159,24 +109,18 @@
 + (id)sharedInstanceIfExists;
 + (id)sharedInstance;
 + (id)_sharedInstanceCreatingIfNeeded:(BOOL)fp8;
-- (void)setFullyRevealed:(BOOL)fp8;
 - (BOOL)isFullyRevealed;
 - (BOOL)isTransitioning;
 - (BOOL)isPresented;
 - (id)coveredApplication;
-- (void)setInGrabberOnlyMode:(BOOL)fp8;
 - (BOOL)inGrabberOnlyMode;
 - (BOOL)isUILocked;
-- (void)_endPresentation;
-- (void)_beginPresentation;
 - (id)_window;
 - (BOOL)isGrabberVisible;
 - (BOOL)isVisible;
-- (void)loadView;
 @end
 
-@interface SBUIControlCenterButton : UIButton
-@end
+@interface SBUIControlCenterButton : UIButton @end
 
 @interface SBCCButtonLikeSectionView : UIControl {
 	//UIView *_darken;
@@ -313,9 +257,9 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 	if ([self.airplaySection enabledForOrientation:orientation]) frame = self.airplaySection.view.frame;
 	
 	hiddenSettingsController.view.frame = CGRectMake(frame.origin.x, 
-	                                                 frame.origin.y + frame.size.height, 
-	                                                 frame.size.width, 
-	                                                 kHiddenSettingsControlHeight);
+													 frame.origin.y + frame.size.height, 
+													 frame.size.width, 
+													 kHiddenSettingsControlHeight);
 }
 
 - (void)_iPad_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(int)orientation {
