@@ -3,6 +3,9 @@
 #import "substrate.h"
 
 
+#define kHiddenSettingsControlHeight		35
+
+
 @interface SBPrototypeController : NSObject
 + (id)sharedInstance;
 + (void)reloadDefaults;
@@ -73,11 +76,11 @@
 - (void)setAirplaySection:(id)fp8;
 - (SBControlCenterSectionViewController *)airplaySection;
 - (void)setMediaControlsSection:(id)fp8;
-- (id)mediaControlsSection;
+- (SBControlCenterSectionViewController *)mediaControlsSection;
 - (void)setBrightnessSection:(id)fp8;
-- (id)brightnessSection;
+- (SBControlCenterSectionViewController *)brightnessSection;
 - (void)setSettingsSection:(id)fp8;
-- (id)settingsSection;
+- (SBControlCenterSectionViewController *)settingsSection;
 - (void)setGrabberView:(id)fp8;
 - (id)grabberView;
 - (void)setViewController:(id)fp8;
@@ -197,6 +200,10 @@
 @end
 
 
+@interface SBControlCenterKnockoutView : UIView @end
+@interface SBControlCenterSeparatorView : SBControlCenterKnockoutView @end
+
+
 @interface SBCCHiddenSettingsSectionController : SBControlCenterSectionViewController
 - (void)showSettingsTapped:(id)section;
 @end
@@ -218,7 +225,7 @@
 - (void)viewDidLoad {
 	%orig;
 	
-	SBCCButtonLikeSectionView *section = [[%c(SBCCButtonLikeSectionView) alloc] initWithFrame:CGRectMake(0, 0, 100, 40)];
+	SBCCButtonLikeSectionView *section = [[%c(SBCCButtonLikeSectionView) alloc] initWithFrame:CGRectMake(0, 0, 100, kHiddenSettingsControlHeight)];
 	[section setText:@"SpringBoard Settings"];
 	[section setEnabled:YES];
 	[section setNumberOfLines:1];
@@ -230,6 +237,8 @@
 
 - (CGSize)contentSizeForOrientation:(int)orientation {
 	CGSize size = %orig;
+	
+	size.height = kHiddenSettingsControlHeight;
 	
 	return size;
 }
@@ -254,6 +263,11 @@
 	}
 }
 
+- (BOOL)enabledForOrientation:(int)orientation {
+	// XXX if landscape, disable
+	return %orig;
+}
+
 %end
 
 
@@ -263,6 +277,28 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 
 %hook SBControlCenterContentView
 
+- (id)_allSections {
+	NSArray *sections = %orig;
+	NSMutableArray *dividerViews = MSHookIvar<NSMutableArray *>(self, "_dividerViews");
+	
+	NSMutableArray *newSections = [NSMutableArray array];
+	
+	for (SBControlCenterSectionViewController *section in sections) {
+		if ([section.sectionIdentifier isEqualToString:@"com.apple.controlcenter.quick-launch"]) {
+			[newSections addObject:hiddenSettingsController];
+		}
+		[newSections addObject:section];
+	}
+	
+	SBControlCenterSeparatorView *seperator = [[%c(SBControlCenterSeparatorView) alloc] initWithFrame:CGRectMake(0,0,0,0)];
+	[seperator setHidden:YES];
+	[dividerViews addObject:seperator];
+	[self addSubview:seperator];
+	[seperator release];
+	
+	return newSections;
+}
+
 - (void)_addSectionController:(SBControlCenterSectionViewController *)sectionViewController {
 	if ([sectionViewController.sectionIdentifier isEqualToString:@"com.apple.controlcenter.quick-launch"]) {
 		[hiddenSettingsController setDelegate:self.viewController];
@@ -270,24 +306,22 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 	}
 	%orig;
 }
-- (void)_removeSectionController:(SBControlCenterSectionViewController *)sectionViewController {
-	if ([sectionViewController.sectionIdentifier isEqualToString:@"com.apple.controlcenter.quick-launch"]) {
-		[self _removeSectionController:hiddenSettingsController];
-	}
-	%orig;
-}
 - (void)_iPhone_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(int)orientation {
 	%orig;
 	
-	CGRect quickLaunchFrame = self.quickLaunchSection.view.frame;
-	hiddenSettingsController.view.frame = CGRectMake(quickLaunchFrame.origin.x, quickLaunchFrame.origin.y - 40, quickLaunchFrame.size.width, 40);
+	CGRect frame = self.mediaControlsSection.view.frame;
+	if ([self.airplaySection enabledForOrientation:orientation]) frame = self.airplaySection.view.frame;
+	
+	hiddenSettingsController.view.frame = CGRectMake(frame.origin.x, 
+	                                                 frame.origin.y + frame.size.height, 
+	                                                 frame.size.width, 
+	                                                 kHiddenSettingsControlHeight);
 }
 
 - (void)_iPad_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(int)orientation {
 	%orig;
 	
-	CGRect quickLaunchFrame = self.quickLaunchSection.view.frame;
-	hiddenSettingsController.view.frame = CGRectMake(quickLaunchFrame.origin.x, quickLaunchFrame.origin.y - 40, quickLaunchFrame.size.width, 40);
+	// XXX To do
 }
 
 %end
@@ -299,11 +333,6 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 	%orig;
 	
 	hiddenSettingsController = [[%c(SBCCHiddenSettingsSectionController) alloc] init];
-}
-
-- (void)_menuButtonWasHeld {
-	Class SBPrototypeController = objc_getClass("SBPrototypeController");
-	[[SBPrototypeController sharedInstance] showOrHide];
 }
 
 %end
