@@ -1,9 +1,19 @@
 #import <UIKit/UIKit.h>
-#import <objc/runtime.h>
 #import "substrate.h"
 
 
-#define kHiddenSettingsControlHeight		35
+#define kAppleControlCenterSettingsIdentifier				@"com.apple.controlcenter.settings"
+#define kAppleControlCenterBrightnessIdentifier				@"com.apple.controlcenter.brightness"
+#define kAppleControlCenterMediaControlsIdentifier			@"com.apple.controlcenter.media-controls"
+#define kAppleControlCenterAirStuffIdentifier				@"com.apple.controlcenter.air-stuff"
+#define kAppleControlCenterQuickLaunchIdentifier			@"com.apple.controlcenter.quick-launch"
+
+
+#define kHiddenSettingsControlHeight						35
+#define kHiddenSettingsControlTag							0xbeef
+#define kHiddenSettingsControlSectionIdentifier				@"me.devbug.controlcenter.hiddensettings7"
+#define kHiddenSettingsControlCaption						@"SpringBoard Settings"
+
 
 
 @interface SBPrototypeController : NSObject
@@ -156,25 +166,18 @@
 
 %new
 - (void)showSettingsTapped:(id)section {
-	Class SBPrototypeController = objc_getClass("SBPrototypeController");
-	[[SBPrototypeController sharedInstance] showOrHide];
+	[[%c(SBPrototypeController) sharedInstance] showOrHide];
 }
 
-- (void)viewDidDisappear:(BOOL)animated {
-	%orig;
-}
-- (void)viewWillAppear:(BOOL)animated {
-	%orig;
-}
 - (void)viewDidLoad {
 	%orig;
 	
 	SBCCButtonLikeSectionView *section = [[%c(SBCCButtonLikeSectionView) alloc] initWithFrame:CGRectMake(0, 0, 100, kHiddenSettingsControlHeight)];
-	[section setText:@"SpringBoard Settings"];
+	[section setText:kHiddenSettingsControlCaption];
 	[section setEnabled:YES];
 	[section setNumberOfLines:1];
 	[section addTarget:self action:@selector(showSettingsTapped:) forControlEvents:UIControlEventTouchUpInside];
-	section.tag = 0xbeef;
+	section.tag = kHiddenSettingsControlTag;
 	[self.view addSubview:section];
 	[section release];
 }
@@ -188,11 +191,11 @@
 }
 
 - (id)sectionIdentifier {
-	return @"me.devbug.controlcenter.hiddensettings7";
+	return kHiddenSettingsControlSectionIdentifier;
 }
 
 - (void)dealloc {
-	UIView *section = [self.view viewWithTag:0xbeef];
+	UIView *section = [self.view viewWithTag:kHiddenSettingsControlTag];
 	[section removeFromSuperview];
 	
 	%orig;
@@ -201,7 +204,7 @@
 - (void)viewWillLayoutSubviews {
 	%orig;
 	
-	UIView *section = [self.view viewWithTag:0xbeef];
+	UIView *section = [self.view viewWithTag:kHiddenSettingsControlTag];
 	if (section) {
 		section.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
 	}
@@ -228,28 +231,32 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 	NSMutableArray *newSections = [NSMutableArray array];
 	
 	for (SBControlCenterSectionViewController *section in sections) {
-		if ([section.sectionIdentifier isEqualToString:@"com.apple.controlcenter.quick-launch"]) {
+		if ([section.sectionIdentifier isEqualToString:kAppleControlCenterQuickLaunchIdentifier]) {
 			[newSections addObject:hiddenSettingsController];
 		}
 		[newSections addObject:section];
 	}
 	
-	SBControlCenterSeparatorView *seperator = [[%c(SBControlCenterSeparatorView) alloc] initWithFrame:CGRectMake(0,0,0,0)];
-	[seperator setHidden:YES];
-	[dividerViews addObject:seperator];
-	[self addSubview:seperator];
-	[seperator release];
+	// divider should be "count of sections - 1"
+	if (newSections.count - 1 > dividerViews.count) {
+		SBControlCenterSeparatorView *seperator = [[%c(SBControlCenterSeparatorView) alloc] initWithFrame:CGRectMake(0,0,0,0)];
+		[seperator setHidden:YES];
+		[dividerViews addObject:seperator];
+		[self addSubview:seperator];
+		[seperator release];
+	}
 	
 	return newSections;
 }
 
 - (void)_addSectionController:(SBControlCenterSectionViewController *)sectionViewController {
-	if ([sectionViewController.sectionIdentifier isEqualToString:@"com.apple.controlcenter.quick-launch"]) {
+	if ([sectionViewController.sectionIdentifier isEqualToString:kAppleControlCenterQuickLaunchIdentifier]) {
 		[hiddenSettingsController setDelegate:self.viewController];
 		[self _addSectionController:hiddenSettingsController];
 	}
 	%orig;
 }
+
 - (void)_iPhone_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(int)orientation {
 	%orig;
 	
