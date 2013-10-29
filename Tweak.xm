@@ -164,6 +164,10 @@
 
 %subclass SBCCHiddenSettingsSectionController : SBControlCenterSectionViewController
 
++ (Class)viewClass {
+	return %c(SBCCButtonLikeSectionView);
+}
+
 %new
 - (void)showSettingsTapped:(id)section {
 	[[%c(SBPrototypeController) sharedInstance] showOrHide];
@@ -172,14 +176,10 @@
 - (void)viewDidLoad {
 	%orig;
 	
-	SBCCButtonLikeSectionView *section = [[%c(SBCCButtonLikeSectionView) alloc] initWithFrame:CGRectMake(0, 0, 100, kHiddenSettingsControlHeight)];
+	SBCCButtonLikeSectionView *section = (SBCCButtonLikeSectionView *)self.view;
 	[section setText:kHiddenSettingsControlCaption];
-	[section setEnabled:YES];
-	[section setNumberOfLines:1];
 	[section addTarget:self action:@selector(showSettingsTapped:) forControlEvents:UIControlEventTouchUpInside];
-	section.tag = kHiddenSettingsControlTag;
-	[self.view addSubview:section];
-	[section release];
+	[section setFont:[UIFont systemFontOfSize:14]];
 }
 
 - (CGSize)contentSizeForOrientation:(int)orientation {
@@ -195,19 +195,11 @@
 }
 
 - (void)dealloc {
-	UIView *section = [self.view viewWithTag:kHiddenSettingsControlTag];
-	[section removeFromSuperview];
-	
 	%orig;
 }
 
 - (void)viewWillLayoutSubviews {
 	%orig;
-	
-	UIView *section = [self.view viewWithTag:kHiddenSettingsControlTag];
-	if (section) {
-		section.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
-	}
 }
 
 - (BOOL)enabledForOrientation:(int)orientation {
