@@ -245,22 +245,21 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 	
 	float height = [hiddenSettingsController contentSizeForOrientation:orientation].height;
 	
-	SBControlCenterSectionViewController *prevSection = nil;
-	NSArray *allSections = [self _allSections];
-	unsigned int dividerIndex = 0;
-	for (SBControlCenterSectionViewController *section in allSections) {
-		if (section == hiddenSettingsController) break;
-		
-		if ([section enabledForOrientation:orientation]) {
-			prevSection = section;
-			dividerIndex++;
+	CGRect frame = self.airplaySection.view.frame;
+	if (![self.airplaySection enabledForOrientation:orientation]) {
+		SBControlCenterSectionViewController *prevSection = nil;
+		NSArray *allSections = [self _allSections];
+		unsigned int dividerIndex = 0;
+		for (SBControlCenterSectionViewController *section in allSections) {
+			if (section == hiddenSettingsController) break;
+			
+			if ([section enabledForOrientation:orientation]) {
+				prevSection = section;
+				dividerIndex++;
+			}
 		}
-	}
-	
-	CGRect frame = prevSection.view.frame;
-	if ([self.airplaySection enabledForOrientation:orientation])
-		frame = self.airplaySection.view.frame;
-	else {
+		
+		frame = prevSection.view.frame;
 		frame.size.height -= height;
 		prevSection.view.frame = frame;
 		
