@@ -185,7 +185,7 @@
 - (CGSize)contentSizeForOrientation:(int)orientation {
 	CGSize size = %orig;
 	
-	size.height = kHiddenSettingsControlHeight;
+	size.height = (UIInterfaceOrientationIsPortrait(orientation) ? kHiddenSettingsControlHeight : kHiddenSettingsControlHeight * 2.0);
 	
 	return size;
 }
@@ -203,8 +203,7 @@
 }
 
 - (BOOL)enabledForOrientation:(int)orientation {
-	// XXX if landscape, disable
-	return %orig;
+	return YES;
 }
 
 %end
@@ -241,30 +240,70 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 	return newSections;
 }
 
-- (void)_addSectionController:(SBControlCenterSectionViewController *)sectionViewController {
-	if ([sectionViewController.sectionIdentifier isEqualToString:kAppleControlCenterQuickLaunchIdentifier]) {
-		[hiddenSettingsController setDelegate:self.viewController];
-		[self _addSectionController:hiddenSettingsController];
-	}
-	%orig;
-}
-
 - (void)_iPhone_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(int)orientation {
 	%orig;
 	
-	CGRect frame = self.mediaControlsSection.view.frame;
-	if ([self.airplaySection enabledForOrientation:orientation]) frame = self.airplaySection.view.frame;
+	float height = [hiddenSettingsController contentSizeForOrientation:orientation].height;
+	
+	UIView *prevSectionView = nil;
+	NSArray *allSections = [self _allSections];
+	unsigned int dividerIndex = 0;
+	for (SBControlCenterSectionViewController *section in allSections) {
+		if (section == hiddenSettingsController) break;
+		
+		prevSectionView = section.view;
+		dividerIndex++;
+	}
+	
+	CGRect frame = prevSectionView.frame;
+	if ([self.airplaySection enabledForOrientation:orientation])
+		frame = self.airplaySection.view.frame;
+	else {
+		frame.size.height -= height;
+		prevSectionView.frame = frame;
+		
+		NSMutableArray *dividerViews = MSHookIvar<NSMutableArray *>(self, "_dividerViews");
+		
+		CGRect rect;
+		SBControlCenterSeparatorView *seperator = nil;
+		
+		for (unsigned int i=dividerIndex-1;i<dividerViews.count;i++) {
+			seperator = dividerViews[i];
+			rect = seperator.frame;
+			rect.origin.y -= height;
+			seperator.frame = rect;
+		}
+		
+		if (UIInterfaceOrientationIsPortrait(orientation)) {
+			seperator = dividerViews[2];
+			seperator.hidden = YES;
+			
+			rect = self.quickLaunchSection.view.frame;
+			rect.origin.y -= height;
+			rect.size.height += height;
+			self.quickLaunchSection.view.frame = rect;
+		}
+	}
 	
 	hiddenSettingsController.view.frame = CGRectMake(frame.origin.x, 
 													 frame.origin.y + frame.size.height, 
 													 frame.size.width, 
-													 kHiddenSettingsControlHeight);
+													 height);
 }
 
 - (void)_iPad_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(int)orientation {
 	%orig;
 	
 	// XXX To do
+}
+
+- (float)contentHeightForOrientation:(int)orientation {
+	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) return %orig;
+	if (!UIInterfaceOrientationIsPortrait(orientation)) return %orig;
+	
+	if ([self.airplaySection enabledForOrientation:orientation]) return %orig;
+	
+	return %orig - [hiddenSettingsController contentSizeForOrientation:orientation].height;
 }
 
 %end
