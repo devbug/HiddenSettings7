@@ -295,7 +295,12 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 - (void)_iPad_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(int)orientation {
 	%orig;
 	
-	// XXX To do
+	CGRect frame = self.settingsSection.view.frame;
+	
+	hiddenSettingsController.view.frame = CGRectMake(frame.origin.x, 
+													 frame.origin.y + frame.size.height, 
+													 frame.size.width, 
+													 kHiddenSettingsControlHeight);
 }
 
 - (float)contentHeightForOrientation:(int)orientation {
