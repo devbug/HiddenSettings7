@@ -297,6 +297,15 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 	
 	CGRect frame = self.settingsSection.view.frame;
 	
+	if ([self.airplaySection enabledForOrientation:orientation]) {
+		CGRect rect = self.airplaySection.view.frame;
+		
+		rect.size.height /= 2.0f;
+		self.airplaySection.view.frame = rect;
+		
+		frame = self.airplaySection.view.frame;
+	}
+	
 	hiddenSettingsController.view.frame = CGRectMake(frame.origin.x, 
 													 frame.origin.y + frame.size.height, 
 													 frame.size.width, 

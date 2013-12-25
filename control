@@ -1,7 +1,7 @@
 Package: me.devbug.hiddensettings7
 Name: HiddenSettings7
 Depends: mobilesubstrate, firmware (>= 7.0)
-Version: 0.0.1
+Version: 0.1
 Architecture: iphoneos-arm
 Description: Show hidden SpringBoard Settings!
 Maintainer: deVbug
