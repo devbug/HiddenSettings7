@@ -1,6 +1,4 @@
-ARCHS = armv7
-TARGET = iphone:latest:7.0
-INCLUDE_SDKVERSION = 7.0
+ARCHS = armv7 arm64
 SDKVERSION = 7.0
 
 FW_DEVICE_IP = 192.168.1.4

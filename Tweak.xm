@@ -240,10 +240,10 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 	return newSections;
 }
 
-- (void)_iPhone_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(int)orientation {
+- (void)_iPhone_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(NSInteger)orientation {
 	%orig;
 	
-	float height = [hiddenSettingsController contentSizeForOrientation:orientation].height;
+	CGFloat height = [hiddenSettingsController contentSizeForOrientation:orientation].height;
 	
 	CGRect frame = self.airplaySection.view.frame;
 	if (![self.airplaySection enabledForOrientation:orientation]) {
@@ -292,7 +292,7 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 													 height);
 }
 
-- (void)_iPad_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(int)orientation {
+- (void)_iPad_layoutSubviewsInBounds:(CGRect)mainBounds orientation:(NSInteger)orientation {
 	%orig;
 	
 	CGRect frame = self.settingsSection.view.frame;
@@ -312,7 +312,7 @@ static SBCCHiddenSettingsSectionController *hiddenSettingsController = nil;
 													 kHiddenSettingsControlHeight);
 }
 
-- (float)contentHeightForOrientation:(int)orientation {
+- (CGFloat)contentHeightForOrientation:(NSInteger)orientation {
 	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) return %orig;
 	if (!UIInterfaceOrientationIsPortrait(orientation)) return %orig;
 	
